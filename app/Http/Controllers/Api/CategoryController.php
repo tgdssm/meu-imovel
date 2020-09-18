@@ -12,10 +12,10 @@ use App\Models\Category;
 class CategoryController extends Controller
 {
     private $categories;
-    
+
     public function __construct(Category $category)
     {
-         $this->categories = $category;
+        $this->categories = $category;
     }
     /**
      * Display a listing of the resource.
@@ -37,15 +37,15 @@ class CategoryController extends Controller
     public function store(CategoryRequest $request)
     {
         $data = $request->all();
-        
-        try{
+
+        try {
             $this->categories->create($data);
             return response()->json([
                 'data' => [
                     'msg' => 'nova categoria cadastrada com sucesso!'
                 ]
             ]);
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
             return response()->json($message->getMessage());
         }
@@ -59,10 +59,10 @@ class CategoryController extends Controller
      */
     public function show($id)
     {
-        try{
+        try {
             $category = $this->categories->findOrFail($id);
             return new CategoryResource($category);
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
             return response()->json($message->getMessage());
         }
@@ -78,7 +78,7 @@ class CategoryController extends Controller
     public function update(CategoryRequest $request, $id)
     {
         $data = $request->all();
-        try{
+        try {
             $category = $this->categories->findOrFail($id);
             $category->update($data);
             return response()->json([
@@ -86,7 +86,7 @@ class CategoryController extends Controller
                     'msg' => 'categoria atualizada com sucesso!'
                 ]
             ]);
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
             return response()->json($message->getMessage());
         }
@@ -100,7 +100,7 @@ class CategoryController extends Controller
      */
     public function destroy($id)
     {
-        try{
+        try {
             $category = $this->categories->findOrFail($id);
             $category->delete();
             return response()->json([
@@ -108,7 +108,7 @@ class CategoryController extends Controller
                     'msg' => 'categoria excluida com sucesso!'
                 ]
             ]);
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
             return response()->json($message->getMessage());
         }
@@ -116,12 +116,12 @@ class CategoryController extends Controller
 
     public function realState($id)
     {
-        try{
+        try {
             $category = $this->categories->findOrFail($id);
             return response()->json([
                 'data' => $category->realStates
             ]);
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
             return response()->json($message->getMessage());
         }

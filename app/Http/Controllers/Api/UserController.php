@@ -48,7 +48,7 @@ class UserController extends Controller
         Validator::make($data, [
             'phone' => ['required'],
             'mobile_phone' => ['required'],
-        ]);
+        ])->validate();
 
         try {
             $data['passoword'] = Hash::make($data['password']);
@@ -79,8 +79,9 @@ class UserController extends Controller
     public function show($id)
     {
         try {
-            $user = $this->users->findOrFail($id);
-            return new UserResource($user);
+            $user = $this->users->with('userProfile')->findOrFail($id);
+            $user->userProfile->social_networks = unserialize($user->userProfile->social_networks);
+            return $user;
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
             return response()->json($message->getMessage());
@@ -97,7 +98,6 @@ class UserController extends Controller
     public function update(UserRequest $request, $id)
     {
         $data = $request->all();
-
         if ($request->filled('password')) {
             $data['password'] = Hash::make($data['password']);
         } else {
@@ -105,20 +105,21 @@ class UserController extends Controller
         }
 
         Validator::make($data, [
-            'phone' => ['required'],
-            'mobile_phone' => ['required'],
-        ]);
+            'profile.phone' => ['required'],
+            'profile.mobile_phone' => ['required'],
+        ])->validate();
 
         try {
+
+            $profile = $data['profile'];
+            $profile['social_networks'] = serialize($profile['social_networks']);
+
             $user = $this->users->findOrFail($id);
             $user->update($data);
-            $user->userProfile()->update([
-                'phone' => $data['phone'],
-                'mobile_phone' => $data['mobile_phone'],
-            ]);
+            $user->userProfile()->update($profile);
             return response()->json([
                 'data' => [
-                    'msg' => 'usuario atualizado com sucesso!'
+                    'message' => ' User profile updated successfully!'
                 ]
             ]);
         } catch (\Exception $e) {
