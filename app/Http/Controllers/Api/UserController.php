@@ -46,18 +46,16 @@ class UserController extends Controller
         }
 
         Validator::make($data, [
-            'phone' => ['required'],
-            'mobile_phone' => ['required'],
+            'profile.phone' => ['required'],
+            'profile.mobile_phone' => ['required'],
         ])->validate();
 
         try {
-            $data['passoword'] = Hash::make($data['password']);
+            $data['password'] = Hash::make($data['password']);
+            $profile = $data['profile'];
 
             $user = $this->users->create($data);
-            $user->userProfile()->create([
-                'phone' => $data['phone'],
-                'mobile_phone' => $data['mobile_phone']
-            ]);
+            $user->userProfile()->create($profile);
 
             return response()->json([
                 'data' => [
@@ -80,7 +78,8 @@ class UserController extends Controller
     {
         try {
             $user = $this->users->with('userProfile')->findOrFail($id);
-            $user->userProfile->social_networks = unserialize($user->userProfile->social_networks);
+            if($user->userProfile->social_networks)
+                $user->userProfile->social_networks = unserialize($user->userProfile->social_networks);
             return $user;
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());

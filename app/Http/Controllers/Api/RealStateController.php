@@ -37,11 +37,22 @@ class RealStateController extends Controller
     public function store(RealStateRequest $request)
     {
         $data = $request->all();
+        $images = $request->images;
+
         try {
             $realState = $this->realState->create($data);
 
             if (isset($data['categories']) && count($data['categories'])) {
                 $realState->categories()->sync($data['categories']);
+            }
+
+            if ($images) {
+                $imagesUploaded = [];
+                foreach ($images as $image) {
+                    $path = $image->store('images', 'public');
+                    $imagesUploaded[] = ['photo' => $path, 'is_thumb' => false];
+                }
+                $realState->photos()->createMany($imagesUploaded);
             }
 
             return response()->json([
@@ -64,8 +75,10 @@ class RealStateController extends Controller
     public function show($id)
     {
         try {
-            $realState = $this->realState->findOrFail($id);
-            return new RealStateResource($realState);
+            $realState = $this->realState->with('categories')
+                                            ->with('photos')
+                                            ->findOrFail($id);
+            return $realState;
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
             return response()->json($message->getMessage());
@@ -82,6 +95,8 @@ class RealStateController extends Controller
     public function update(RealStateRequest $request, $id)
     {
         $data = $request->all();
+        $images = $request->images;
+
         try {
             $realState = $this->realState->findOrFail($id);
             $realState->update($data);
@@ -89,7 +104,16 @@ class RealStateController extends Controller
             if (isset($data['categories']) && count($data['categories'])) {
                 $realState->categories()->sync($data['categories']);
             }
-            
+
+            if ($images) {
+                $imagesUploaded = [];
+                foreach ($images as $image) {
+                    $path = $image->store('images', 'public');
+                    $imagesUploaded[] = ['photo' => $path, 'is_thumb' => false];
+                }
+                $realState->photos()->createMany($imagesUploaded);
+            }
+
             return response()->json([
                 'data' => [
                     'msg' => 'imovel atualizado com sucesso!',
